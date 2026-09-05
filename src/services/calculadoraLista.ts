@@ -2,6 +2,8 @@ export interface EntradaCalculadora {
   id: string;
   recetaId: string;
   cantidadStr: string;
+  /** itemIds de ingredientes (o sub-ingredientes) que el usuario marcó para craftear en vez de comprar. */
+  craftearIds?: string[];
 }
 
 function clave(uid: string): string {
@@ -49,4 +51,24 @@ export function agregarRecetaALista(
     };
   }
   return { lista: [...lista, { id: nuevoId, recetaId, cantidadStr: String(cantidad) }], id: nuevoId };
+}
+
+/**
+ * Marca/desmarca un ingrediente (o sub-ingrediente) de una entrada para que
+ * se craftee en vez de comprarse, sin necesidad de agregar esa sub-receta
+ * como una entrada aparte en la lista.
+ */
+export function alternarCraftearIngrediente(
+  lista: EntradaCalculadora[],
+  entradaId: string,
+  itemId: string,
+): EntradaCalculadora[] {
+  return lista.map((entrada) => {
+    if (entrada.id !== entradaId) return entrada;
+    const actuales = entrada.craftearIds ?? [];
+    const craftearIds = actuales.includes(itemId)
+      ? actuales.filter((id) => id !== itemId)
+      : [...actuales, itemId];
+    return { ...entrada, craftearIds };
+  });
 }

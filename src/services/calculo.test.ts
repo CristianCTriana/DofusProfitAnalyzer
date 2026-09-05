@@ -107,7 +107,48 @@ describe("costoUnitarioConCraft", () => {
       new Set(["sangre"]),
       new Map([[recetaSangre.id, recetaSangre]]),
     );
-    expect(resultado).toEqual({ costoUnitario: 1, fuente: "mercado", viaCraft: true });
+    expect(resultado).toEqual({
+      costoUnitario: 1,
+      fuente: "mercado",
+      viaCraft: true,
+      detalle: [{ itemId: "cereza", cantidad: 1, costoUnitario: 1, fuente: "mercado", viaCraft: false }],
+    });
+  });
+
+  it("craftea aunque la receta no esté en la lista si el usuario la marcó manualmente en craftearIds", () => {
+    const resultado = costoUnitarioConCraft(
+      "sangre",
+      itemsPorIdCraft,
+      SERVIDOR,
+      new Set(),
+      new Map([[recetaSangre.id, recetaSangre]]),
+      new Set(),
+      new Set(["sangre"]),
+    );
+    expect(resultado).toEqual({
+      costoUnitario: 1,
+      fuente: "mercado",
+      viaCraft: true,
+      detalle: [{ itemId: "cereza", cantidad: 1, costoUnitario: 1, fuente: "mercado", viaCraft: false }],
+    });
+  });
+
+  it("craftea manualmente aunque salga más caro que comprar (el usuario eligió craftear, no se compara)", () => {
+    const resultado = costoUnitarioConCraft(
+      "sangre-cara",
+      itemsPorIdCraft,
+      SERVIDOR,
+      new Set(),
+      new Map([[recetaSangreCara.id, recetaSangreCara]]),
+      new Set(),
+      new Set(["sangre-cara"]),
+    );
+    expect(resultado).toEqual({
+      costoUnitario: 20,
+      fuente: "mercado",
+      viaCraft: true,
+      detalle: [{ itemId: "cereza", cantidad: 20, costoUnitario: 1, fuente: "mercado", viaCraft: false }],
+    });
   });
 
   it("prefiere comprar cuando craftear con sus ingredientes sale más caro", () => {

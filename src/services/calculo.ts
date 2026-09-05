@@ -1,5 +1,6 @@
 import type {
   CostoIngrediente,
+  DetalleIngredienteCraft,
   FuenteCosto,
   Item,
   Receta,
@@ -42,12 +43,18 @@ export function costoEfectivoItem(
 }
 
 /**
- * Costo de un ingrediente considerando también la opción de craftearlo: si su
- * propia receta está en `recetasIdsEnLista` (ej. la calculadora tiene tanto
- * "Cuerno grande de urikornio" como "Sangre de urikornio" en la lista), se
- * compara el precio de compra contra el costo de craftearlo con sus propios
- * ingredientes (recursivo, con protección contra ciclos) y se usa el más
- * barato de los dos.
+ * Costo de un ingrediente considerando también la opción de craftearlo.
+ * Un ingrediente se craftea cuando:
+ * - el usuario lo marcó explícitamente en `craftearIds` (opción manual desde
+ *   el desplegable de la calculadora, sin necesidad de agregar la sub-receta
+ *   como una entrada aparte en la lista) — en ese caso siempre se craftea; o
+ * - su propia receta está en `recetasIdsEnLista` (ej. la calculadora tiene
+ *   tanto "Cuerno grande de urikornio" como "Sangre de urikornio" en la
+ *   lista, cada una como su propia entrada) — en ese caso se compara el
+ *   precio de compra contra el costo de craftear y se usa el más barato.
+ * En ambos casos el costo de craftear se calcula recursivamente con los
+ * ingredientes de la sub-receta (con protección contra ciclos), devolviendo
+ * también el desglose para poder mostrarlo en la UI.
  */
 export function costoUnitarioConCraft(
   itemId: string,
@@ -56,33 +63,38 @@ export function costoUnitarioConCraft(
   recetasIdsEnLista: Set<string>,
   recetasPorId: Map<string, Receta>,
   visitados: Set<string> = new Set(),
-): { costoUnitario: number; fuente: FuenteCosto; viaCraft: boolean } {
+  craftearIds: Set<string> = new Set(),
+): { costoUnitario: number; fuente: FuenteCosto; viaCraft: boolean; detalle?: DetalleIngredienteCraft[] } {
   const item = itemsPorId[itemId];
   if (!item) {
     throw new Error(`Item no encontrado: ${itemId}`);
   }
   const { costoUnitario: costoComprar, fuente } = costoEfectivoItem(item, servidorActivo);
 
-  const subReceta = recetasIdsEnLista.has(itemId) ? recetasPorId.get(itemId) : undefined;
+  const forzadoManual = craftearIds.has(itemId);
+  const elegibleAutomatico = recetasIdsEnLista.has(itemId);
+  const subReceta = forzadoManual || elegibleAutomatico ? recetasPorId.get(itemId) : undefined;
   if (!subReceta || visitados.has(itemId)) {
     return { costoUnitario: costoComprar, fuente, viaCraft: false };
   }
 
   const visitadosConEste = new Set(visitados).add(itemId);
-  const costoCraftear = subReceta.ingredientes.reduce((suma, ing) => {
-    const { costoUnitario } = costoUnitarioConCraft(
+  const detalle: DetalleIngredienteCraft[] = subReceta.ingredientes.map((ing) => {
+    const costo = costoUnitarioConCraft(
       ing.itemId,
       itemsPorId,
       servidorActivo,
       recetasIdsEnLista,
       recetasPorId,
       visitadosConEste,
+      craftearIds,
     );
-    return suma + costoUnitario * ing.cantidad;
-  }, 0);
+    return { itemId: ing.itemId, cantidad: ing.cantidad, ...costo };
+  });
+  const costoCraftear = detalle.reduce((suma, d) => suma + d.costoUnitario * d.cantidad, 0);
 
-  if (costoCraftear < costoComprar) {
-    return { costoUnitario: costoCraftear, fuente, viaCraft: true };
+  if (forzadoManual || costoCraftear < costoComprar) {
+    return { costoUnitario: costoCraftear, fuente, viaCraft: true, detalle };
   }
   return { costoUnitario: costoComprar, fuente, viaCraft: false };
 }

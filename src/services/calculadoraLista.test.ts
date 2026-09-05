@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { agregarRecetaALista } from "./calculadoraLista";
+import { agregarRecetaALista, alternarCraftearIngrediente } from "./calculadoraLista";
 
 describe("agregarRecetaALista", () => {
   it("agrega una receta nueva con el id dado", () => {
@@ -24,6 +24,32 @@ describe("agregarRecetaALista", () => {
     expect(lista).toEqual([
       { id: "id-1", recetaId: "receta-1", cantidadStr: "3" },
       { id: "id-2", recetaId: "receta-2", cantidadStr: "15" },
+    ]);
+  });
+});
+
+describe("alternarCraftearIngrediente", () => {
+  it("marca un ingrediente para craftear si no estaba marcado", () => {
+    const inicial = [{ id: "id-1", recetaId: "receta-1", cantidadStr: "3" }];
+    const lista = alternarCraftearIngrediente(inicial, "id-1", "item-a");
+    expect(lista).toEqual([{ id: "id-1", recetaId: "receta-1", cantidadStr: "3", craftearIds: ["item-a"] }]);
+  });
+
+  it("desmarca un ingrediente ya marcado", () => {
+    const inicial = [{ id: "id-1", recetaId: "receta-1", cantidadStr: "3", craftearIds: ["item-a", "item-b"] }];
+    const lista = alternarCraftearIngrediente(inicial, "id-1", "item-a");
+    expect(lista).toEqual([{ id: "id-1", recetaId: "receta-1", cantidadStr: "3", craftearIds: ["item-b"] }]);
+  });
+
+  it("no toca otras entradas de la lista", () => {
+    const inicial = [
+      { id: "id-1", recetaId: "receta-1", cantidadStr: "3" },
+      { id: "id-2", recetaId: "receta-2", cantidadStr: "10" },
+    ];
+    const lista = alternarCraftearIngrediente(inicial, "id-2", "item-a");
+    expect(lista).toEqual([
+      { id: "id-1", recetaId: "receta-1", cantidadStr: "3" },
+      { id: "id-2", recetaId: "receta-2", cantidadStr: "10", craftearIds: ["item-a"] },
     ]);
   });
 });

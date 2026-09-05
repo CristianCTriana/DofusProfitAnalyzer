@@ -76,6 +76,16 @@ export interface ConfigGlobal {
 /** Fuente de la que salió el costo efectivo usado para un ingrediente. */
 export type FuenteCosto = "mercado" | "npc" | "gratis";
 
+/** Desglose recursivo de una sub-receta crafteada: cuánto cuesta cada uno de sus ingredientes. */
+export interface DetalleIngredienteCraft {
+  itemId: string;
+  cantidad: number;
+  costoUnitario: number;
+  fuente: FuenteCosto;
+  viaCraft: boolean;
+  detalle?: DetalleIngredienteCraft[];
+}
+
 export interface CostoIngrediente {
   itemId: string;
   cantidad: number;

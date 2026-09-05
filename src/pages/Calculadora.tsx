@@ -6,6 +6,7 @@ import { useCatalogo } from "../context/CatalogoContext";
 import { useServidorActivo } from "../context/ServidorContext";
 import {
   agregarRecetaALista,
+  alternarCraftearIngrediente,
   guardarListaCalculadora,
   leerListaCalculadora,
   type EntradaCalculadora,
@@ -13,7 +14,7 @@ import {
 import { costoUnitarioConCraft } from "../services/calculo";
 import { getConfigGlobal } from "../services/config";
 import { getInventario } from "../services/inventario";
-import type { FuenteCosto, Item, Receta, Servidor } from "../types";
+import type { DetalleIngredienteCraft, FuenteCosto, Item, Receta, Servidor } from "../types";
 import { formatExacto } from "../utils/formato";
 
 interface FilaIngrediente {
@@ -27,6 +28,10 @@ interface FilaIngrediente {
   viaCraft: boolean;
   costoAComprar: number;
   costoSinInventario: number;
+  /** Presente si este item también tiene su propia receta craftable en el catálogo. */
+  subReceta: Receta | undefined;
+  /** Desglose de costos de la sub-receta, solo cuando viaCraft es true. */
+  detalle: DetalleIngredienteCraft[] | undefined;
 }
 
 interface ResultadoEntrada {
@@ -51,18 +56,20 @@ function calcularResultado(
   impuestoPorcentaje: number,
   recetasIdsEnLista: Set<string>,
   recetasPorId: Map<string, Receta>,
+  craftearIds: Set<string>,
 ): ResultadoEntrada | null {
   try {
     const filas = receta.ingredientes.map((ing) => {
       const item = itemsPorId[ing.itemId];
       if (!item) throw new Error("falta-item");
-      const { costoUnitario, fuente, viaCraft } = costoUnitarioConCraft(
+      const { costoUnitario, fuente, viaCraft, detalle } = costoUnitarioConCraft(
         ing.itemId,
         itemsPorId,
         servidorActivo,
         recetasIdsEnLista,
         recetasPorId,
         new Set([receta.id]),
+        craftearIds,
       );
       const necesario = ing.cantidad * cantidadX;
       const enInventario = inventario[ing.itemId] ?? 0;
@@ -79,6 +86,8 @@ function calcularResultado(
         viaCraft,
         costoAComprar: faltante * costoUnitario,
         costoSinInventario: necesario * costoUnitario,
+        subReceta: recetasPorId.get(ing.itemId),
+        detalle,
       };
     });
 
@@ -200,6 +209,10 @@ export function Calculadora() {
     setLista((prev) => prev.map((entrada) => (entrada.id === id ? { ...entrada, cantidadStr: valor } : entrada)));
   }
 
+  function alternarCraftear(entradaId: string, itemId: string) {
+    setLista((prev) => alternarCraftearIngrediente(prev, entradaId, itemId));
+  }
+
   const entradas = useMemo(
     () =>
       lista
@@ -216,6 +229,7 @@ export function Calculadora() {
             impuestoPorcentaje,
             recetasIdsEnLista,
             recetasPorId,
+            new Set(entrada.craftearIds ?? []),
           );
           return { entrada, receta: recetaEntrada, cantidad, resultado };
         })
@@ -409,44 +423,71 @@ export function Calculadora() {
                             <div className="w-20 shrink-0 text-right">Falta</div>
                             <div className="w-24 shrink-0 text-right">Costo a comprar</div>
                           </div>
-                          {resultado.filas.map((f) => (
-                            <div key={f.item.id} className="flex items-center gap-3.5 border-b border-border py-2.5 last:border-none">
-                              {f.item.iconId ? (
-                                <img src={iconoDofusDb(f.item.iconId)} alt="" className="h-6 w-6 shrink-0 rounded bg-surface-2" />
-                              ) : (
-                                <div className="h-6 w-6 shrink-0 rounded bg-surface-2" />
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
-                                  <div className="truncate text-sm font-semibold text-text-primary">{f.item.nombre}</div>
-                                  <BotonCopiar texto={f.item.nombre} />
+                          {resultado.filas.map((f) => {
+                            const yaEsListaAparte = recetasIdsEnLista.has(f.item.id);
+                            const marcado = (entrada.craftearIds ?? []).includes(f.item.id);
+                            return (
+                              <div key={f.item.id} className="border-b border-border py-2.5 last:border-none">
+                                <div className="flex items-center gap-3.5">
+                                  {f.item.iconId ? (
+                                    <img src={iconoDofusDb(f.item.iconId)} alt="" className="h-6 w-6 shrink-0 rounded bg-surface-2" />
+                                  ) : (
+                                    <div className="h-6 w-6 shrink-0 rounded bg-surface-2" />
+                                  )}
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="truncate text-sm font-semibold text-text-primary">{f.item.nombre}</div>
+                                      <BotonCopiar texto={f.item.nombre} />
+                                    </div>
+                                    <div className="text-[11px] text-text-muted">
+                                      {f.viaCraft
+                                        ? "Conviene craftear"
+                                        : f.fuente === "gratis"
+                                          ? "Lo consigo yo (drop/craft)"
+                                          : f.fuente === "npc"
+                                            ? "Precio NPC (fijo)"
+                                            : `Mercado · ${servidorActivo}`}
+                                    </div>
+                                  </div>
+                                  <div className="w-20 shrink-0 text-right text-sm tabular-nums text-text-secondary">
+                                    {formatExacto(f.necesario)}
+                                  </div>
+                                  <div className="w-20 shrink-0 text-right text-sm tabular-nums text-text-secondary">
+                                    {formatExacto(f.enInventario)}
+                                  </div>
+                                  <div
+                                    className={`w-20 shrink-0 text-right text-sm font-bold tabular-nums ${f.faltante > 0 ? "text-critical" : "text-good"}`}
+                                  >
+                                    {formatExacto(f.faltante)}
+                                  </div>
+                                  <div className="w-24 shrink-0 text-right text-sm font-bold tabular-nums text-text-primary">
+                                    {formatExacto(f.costoAComprar)}
+                                  </div>
                                 </div>
-                                <div className="text-[11px] text-text-muted">
-                                  {f.viaCraft
-                                    ? "Conviene craftear"
-                                    : f.fuente === "gratis"
-                                      ? "Lo consigo yo (drop/craft)"
-                                      : f.fuente === "npc"
-                                        ? "Precio NPC (fijo)"
-                                        : `Mercado · ${servidorActivo}`}
-                                </div>
+                                {f.subReceta && !yaEsListaAparte && (
+                                  <label className="mt-1.5 flex items-center gap-1.5 pl-9 text-[11px] font-semibold text-accent">
+                                    <input
+                                      type="checkbox"
+                                      checked={marcado}
+                                      onChange={() => alternarCraftear(entrada.id, f.item.id)}
+                                    />
+                                    Craftear esta sub-receta (sumar al cálculo)
+                                  </label>
+                                )}
+                                {f.viaCraft && f.detalle && (
+                                  <DetalleCraftLista
+                                    detalle={f.detalle}
+                                    multiplicador={f.necesario}
+                                    itemsPorId={itemsPorId}
+                                    recetasPorId={recetasPorId}
+                                    recetasIdsEnLista={recetasIdsEnLista}
+                                    craftearIds={entrada.craftearIds ?? []}
+                                    onToggleCraftear={(itemId) => alternarCraftear(entrada.id, itemId)}
+                                  />
+                                )}
                               </div>
-                              <div className="w-20 shrink-0 text-right text-sm tabular-nums text-text-secondary">
-                                {formatExacto(f.necesario)}
-                              </div>
-                              <div className="w-20 shrink-0 text-right text-sm tabular-nums text-text-secondary">
-                                {formatExacto(f.enInventario)}
-                              </div>
-                              <div
-                                className={`w-20 shrink-0 text-right text-sm font-bold tabular-nums ${f.faltante > 0 ? "text-critical" : "text-good"}`}
-                              >
-                                {formatExacto(f.faltante)}
-                              </div>
-                              <div className="w-24 shrink-0 text-right text-sm font-bold tabular-nums text-text-primary">
-                                {formatExacto(f.costoAComprar)}
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                       {Number.isFinite(resultado.maxConInventario) && (
@@ -507,6 +548,73 @@ function Fila({ label, valor, destacado }: { label: string; valor: string; desta
       >
         {valor}
       </span>
+    </div>
+  );
+}
+
+function DetalleCraftLista({
+  detalle,
+  multiplicador,
+  itemsPorId,
+  recetasPorId,
+  recetasIdsEnLista,
+  craftearIds,
+  onToggleCraftear,
+}: {
+  detalle: DetalleIngredienteCraft[];
+  multiplicador: number;
+  itemsPorId: Record<string, Item>;
+  recetasPorId: Map<string, Receta>;
+  recetasIdsEnLista: Set<string>;
+  craftearIds: string[];
+  onToggleCraftear: (itemId: string) => void;
+}) {
+  return (
+    <div className="ml-9 mt-2 space-y-2 border-l-2 border-border pl-3.5">
+      {detalle.map((d) => {
+        const item = itemsPorId[d.itemId];
+        if (!item) return null;
+        const cantidadTotal = d.cantidad * multiplicador;
+        const subReceta = recetasPorId.get(d.itemId);
+        const yaEsListaAparte = recetasIdsEnLista.has(d.itemId);
+        const marcado = craftearIds.includes(d.itemId);
+        return (
+          <div key={d.itemId}>
+            <div className="flex items-center gap-2.5">
+              {item.iconId ? (
+                <img src={iconoDofusDb(item.iconId)} alt="" className="h-5 w-5 shrink-0 rounded bg-surface-2" />
+              ) : (
+                <div className="h-5 w-5 shrink-0 rounded bg-surface-2" />
+              )}
+              <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                <span className="truncate text-xs font-semibold text-text-secondary">{item.nombre}</span>
+                <BotonCopiar texto={item.nombre} />
+              </div>
+              <span className="shrink-0 text-xs tabular-nums text-text-muted">{formatExacto(cantidadTotal)}x</span>
+              <span className="w-20 shrink-0 text-right text-xs font-bold tabular-nums text-text-primary">
+                {formatExacto(d.costoUnitario * cantidadTotal)}
+              </span>
+            </div>
+            {subReceta && !yaEsListaAparte && (
+              <label className="mt-1 flex items-center gap-1.5 pl-7 text-[10px] font-semibold text-accent">
+                <input type="checkbox" checked={marcado} onChange={() => onToggleCraftear(d.itemId)} />
+                Craftear esta sub-receta (sumar al cálculo)
+              </label>
+            )}
+            {d.viaCraft && d.detalle && (
+              <DetalleCraftLista
+                detalle={d.detalle}
+                multiplicador={cantidadTotal}
+                itemsPorId={itemsPorId}
+                recetasPorId={recetasPorId}
+                recetasIdsEnLista={recetasIdsEnLista}
+                craftearIds={craftearIds}
+                onToggleCraftear={onToggleCraftear}
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
