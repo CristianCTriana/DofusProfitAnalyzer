@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <style>
+    :root{
+      --bg:#0d0d0e; --surface:#1a1a1f; --surface-2:#202127;
+      --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
+      --text-primary:#f4f3f0; --text-secondary:#c3c2b7; --text-muted:#898781;
+      --accent:#eda100; --accent-solid:#c98500; --accent-ink:#16130a;
+      --good:#0ca30c; --critical:#d03b3b;
+      --sans:'Manrope', system-ui, -apple-system, sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:var(--sans);}
+    a{color:var(--accent);} a:hover{color:#ffb733;}
+    .app{width:1440px;height:1000px;background:var(--bg);display:flex;overflow:hidden;}
+
+    .sidebar{width:232px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;padding:24px 16px;}
+    .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 24px;}
+    .brand-name{font-size:14px;font-weight:800;color:var(--text-primary);}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+      color:var(--text-secondary);font-size:14px;font-weight:600;margin-bottom:4px;}
+    .nav-item.active{background:var(--surface-2);color:var(--text-primary);}
+    .nav-item.active svg{stroke:var(--accent);}
+    .sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--border);}
+    .server-chip{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--surface-2);
+      border-radius:8px;font-size:12px;color:var(--text-secondary);font-weight:600;}
+    .user-row{display:flex;align-items:center;gap:8px;padding:2px;}
+    .avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+    .user-name{font-size:13px;color:var(--text-primary);font-weight:600;flex:1;}
+
+    .content{flex:1;padding:32px 40px;display:flex;flex-direction:column;gap:24px;overflow:hidden;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;}
+    .page-title h2{font-size:20px;font-weight:800;color:var(--text-primary);margin:0;}
+    .page-sub{font-size:13px;color:var(--text-muted);margin:4px 0 0;}
+
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;
+      display:flex;flex-direction:column;gap:8px;}
+    .stat-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;}
+    .stat-value{font-size:26px;font-weight:800;color:var(--text-primary);}
+    .stat-value.accent{color:var(--accent);}
+
+    .lower-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;flex:1;min-height:0;}
+    .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;
+      display:flex;flex-direction:column;gap:18px;overflow:hidden;}
+    .panel-title{font-size:14px;font-weight:700;color:var(--text-primary);margin:0;}
+    .panel-sub{font-size:12px;color:var(--text-muted);margin:-12px 0 0;}
+
+    .bar-row{display:flex;align-items:center;gap:12px;}
+    .bar-rank{width:16px;font-size:12px;color:var(--text-muted);font-weight:700;flex-shrink:0;}
+    .bar-label{width:180px;font-size:13px;color:var(--text-secondary);font-weight:600;flex-shrink:0;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .bar-track{flex:1;height:14px;background:var(--surface-2);border-radius:4px;overflow:hidden;}
+    .bar-fill{height:100%;background:var(--accent);border-radius:0 4px 4px 0;}
+    .bar-value{width:72px;text-align:right;font-size:13px;font-weight:700;color:var(--accent);
+      font-variant-numeric:tabular-nums;flex-shrink:0;}
+
+    .feed-list{display:flex;flex-direction:column;overflow:hidden;}
+    .feed-item{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);}
+    .feed-item:last-child{border-bottom:none;}
+    .feed-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;}
+    .feed-text{font-size:13px;color:var(--text-primary);font-weight:500;}
+    .feed-text b{font-weight:700;}
+    .feed-price{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums;}
+    .feed-meta{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  </style>
+</helmet>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#eda100" stroke-width="1.6"/><path d="M11 8.4v7.2M8.5 14c0-1.4 1.3-2.2 3.2-2.2s3-.7 3-1.9-1.3-1.9-3-1.9c-1.5 0-2.7.6-3 1.7" stroke="#eda100" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span class="brand-name">Dofus Profit</span>
+    </div>
+    <nav>
+      <div class="nav-item active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16M4 12h16M4 19h10"/></svg>
+        Recetas
+      </div>
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5Z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/></svg>
+        Items
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="server-chip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>
+        Servidor: Rosal
+      </div>
+      <div class="user-row">
+        <div class="avatar">CT</div>
+        <span class="user-name">Cristian</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 17l5-5-5-5M20 12H9M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <div class="page-title">
+        <h2>Dashboard</h2>
+        <p class="page-sub">Resumen general del mercado &mdash; servidor Rosal</p>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><span class="stat-label">Recetas activas</span><span class="stat-value">487</span></div>
+      <div class="stat-card"><span class="stat-label">Items registrados</span><span class="stat-value">962</span></div>
+      <div class="stat-card"><span class="stat-label">ROI/h promedio (top 10)</span><span class="stat-value accent">5,791k</span></div>
+      <div class="stat-card"><span class="stat-label">Precios actualizados</span><span class="stat-value">hace 3h</span></div>
+    </div>
+
+    <div class="lower-grid">
+      <div class="panel">
+        <div>
+          <h3 class="panel-title">Top 10 recetas por ROI/hora</h3>
+          <p class="panel-sub">Servidor Rosal &middot; margen neto ya con impuesto descontado</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+          <div class="bar-row"><span class="bar-rank">1</span><span class="bar-label">Botas Invocadas</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="bar-value">9,840k</span></div>
+          <div class="bar-row"><span class="bar-rank">2</span><span class="bar-label">Amuleto del Cripta</span><div class="bar-track"><div class="bar-fill" style="width:65%"></div></div><span class="bar-value">6,435k</span></div>
+          <div class="bar-row"><span class="bar-rank">3</span><span class="bar-label">Cintur&oacute;n de Boohemia</span><div class="bar-track"><div class="bar-fill" style="width:65%"></div></div><span class="bar-value">6,366k</span></div>
+          <div class="bar-row"><span class="bar-rank">4</span><span class="bar-label">Anillo Gelano</span><div class="bar-track"><div class="bar-fill" style="width:63%"></div></div><span class="bar-value">6,231k</span></div>
+          <div class="bar-row"><span class="bar-rank">5</span><span class="bar-label">Capa de Kwoak</span><div class="bar-track"><div class="bar-fill" style="width:61%"></div></div><span class="bar-value">5,992k</span></div>
+          <div class="bar-row"><span class="bar-rank">6</span><span class="bar-label">Casco Bwork&eacute;fico</span><div class="bar-track"><div class="bar-fill" style="width:54%"></div></div><span class="bar-value">5,360k</span></div>
+          <div class="bar-row"><span class="bar-rank">7</span><span class="bar-label">Espada Corvaza</span><div class="bar-track"><div class="bar-fill" style="width:49%"></div></div><span class="bar-value">4,805k</span></div>
+          <div class="bar-row"><span class="bar-rank">8</span><span class="bar-label">Peto de Fungosa</span><div class="bar-track"><div class="bar-fill" style="width:46%"></div></div><span class="bar-value">4,570k</span></div>
+          <div class="bar-row"><span class="bar-rank">9</span><span class="bar-label">Guantes de Piwi</span><div class="bar-track"><div class="bar-fill" style="width:45%"></div></div><span class="bar-value">4,448k</span></div>
+          <div class="bar-row"><span class="bar-rank">10</span><span class="bar-label">Cinto de Craqueleur</span><div class="bar-track"><div class="bar-fill" style="width:42%"></div></div><span class="bar-value">4,090k</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">Actividad reciente</h3>
+        <div class="feed-list">
+          <div class="feed-item"><div class="feed-dot"></div><div><div class="feed-text"><b>Hilo de Plata</b> actualizado a <span class="feed-price">52k</span></div><div class="feed-meta">Rosal &middot; por Karo &middot; hace 1h</div></div></div>
+          <div class="feed-item"><div class="feed-dot"></div><div><div class="feed-text"><b>Cristal de Fuego</b> marcado como gratis</div><div class="feed-meta">Global &middot; por Cristian &middot; hace 2h</div></div></div>
+          <div class="feed-item"><div class="feed-dot"></div><div><div class="feed-text"><b>Botas Invocadas</b> venta actualizada a <span class="feed-price">1,500k</span></div><div class="feed-meta">Rosal &middot; por Nox &middot; hace 3h</div></div></div>
+          <div class="feed-item"><div class="feed-dot"></div><div><div class="feed-text"><b>Felpa</b> actualizado a <span class="feed-price">100k</span></div><div class="feed-meta">Rosal &middot; por Karo &middot; hace 5h</div></div></div>
+          <div class="feed-item"><div class="feed-dot"></div><div><div class="feed-text">Nueva receta <b>Casco Bwork&eacute;fico</b> creada</div><div class="feed-meta">por Cristian &middot; hace 8h</div></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>

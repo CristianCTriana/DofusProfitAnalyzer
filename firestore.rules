@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function estaLogueado() {
+      return request.auth != null;
+    }
+
+    // El acceso con Google crea una cuenta automáticamente para cualquier
+    // correo de Google, así que la lista en config/accesoPermitido.emails
+    // es lo único que restringe el grupo a los amigos que Cristian invite.
+    function emailPermitido() {
+      return estaLogueado() &&
+        request.auth.token.email in get(/databases/$(database)/documents/config/accesoPermitido).data.emails;
+    }
+
+    match /usuarios/{uid} {
+      allow read, write: if emailPermitido() && request.auth.uid == uid;
+    }
+
+    // Inventario personal: cada quien ve y edita solo el suyo.
+    match /inventarios/{uid} {
+      allow read, write: if emailPermitido() && request.auth.uid == uid;
+    }
+
+    match /{documento=**} {
+      allow read, write: if emailPermitido();
+    }
+  }
+}

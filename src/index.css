@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", system-ui, -apple-system, sans-serif;
+
+  /* Oscuro por defecto; :root.light redefine estas mismas variables. */
+  --color-bg: #0d0d0e;
+  --color-surface: #1a1a1f;
+  --color-surface-2: #202127;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+
+  --color-text-primary: #f4f3f0;
+  --color-text-secondary: #c3c2b7;
+  --color-text-muted: #898781;
+
+  --color-accent: #eda100;
+  --color-accent-solid: #c98500;
+  --color-accent-ink: #16130a;
+
+  --color-good: #0ca30c;
+  --color-critical: #d03b3b;
+}
+
+:root.light {
+  --color-bg: #f7f7f5;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0efec;
+  --color-border: rgba(11, 11, 11, 0.08);
+  --color-border-strong: rgba(11, 11, 11, 0.16);
+
+  --color-text-primary: #16151a;
+  --color-text-secondary: #52514e;
+  --color-text-muted: #85837c;
+
+  --color-accent: #c98500;
+  --color-accent-solid: #a86e00;
+  --color-accent-ink: #ffffff;
+
+  --color-good: #0a8a0a;
+  --color-critical: #c22f2f;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+/* La app usa sus propios steppers donde hacen falta; se ocultan las
+   flechas nativas del navegador para que los inputs numéricos no
+   desentonen con el resto del diseño. */
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <style>
+    :root{
+      --bg:#0d0d0e; --surface:#1a1a1f; --surface-2:#202127;
+      --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
+      --text-primary:#f4f3f0; --text-secondary:#c3c2b7; --text-muted:#898781;
+      --accent:#eda100; --accent-solid:#c98500; --accent-ink:#16130a;
+      --good:#0ca30c; --critical:#d03b3b;
+      --sans:'Manrope', system-ui, -apple-system, sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:var(--sans);}
+    a{color:var(--accent);} a:hover{color:#ffb733;}
+    .app{width:1440px;height:1050px;background:var(--bg);display:flex;overflow:hidden;}
+
+    .sidebar{width:232px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;padding:24px 16px;}
+    .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 24px;}
+    .brand-name{font-size:14px;font-weight:800;color:var(--text-primary);}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+      color:var(--text-secondary);font-size:14px;font-weight:600;margin-bottom:4px;}
+    .nav-item.active{background:var(--surface-2);color:var(--text-primary);}
+    .nav-item.active svg{stroke:var(--accent);}
+    .sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--border);}
+    .server-chip{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--surface-2);
+      border-radius:8px;font-size:12px;color:var(--text-secondary);font-weight:600;}
+    .user-row{display:flex;align-items:center;gap:8px;padding:2px;}
+    .avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+    .user-name{font-size:13px;color:var(--text-primary);font-weight:600;flex:1;}
+
+    .content{flex:1;padding:32px 40px;display:flex;flex-direction:column;gap:24px;overflow:hidden;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;}
+    .breadcrumb{font-size:13px;color:var(--text-muted);font-weight:600;}
+    .breadcrumb b{color:var(--text-primary);font-weight:800;font-size:15px;margin-left:6px;}
+    .topbar-actions{display:flex;gap:10px;}
+    .btn-primary{padding:10px 20px;border-radius:8px;border:none;background:var(--accent);
+      color:var(--accent-ink);font-size:13px;font-weight:700;font-family:var(--sans);}
+    .btn-ghost{padding:10px 18px;border-radius:8px;border:1px solid var(--border-strong);background:transparent;
+      color:var(--text-secondary);font-size:13px;font-weight:700;font-family:var(--sans);}
+
+    .layout{display:flex;gap:24px;flex:1;min-height:0;}
+    .form-col{flex:1;display:flex;flex-direction:column;gap:20px;overflow:hidden;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px;}
+    .field-row{display:flex;gap:16px;}
+    .field{flex:1;margin-bottom:4px;}
+    label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;}
+    .input{width:100%;padding:11px 13px;border-radius:8px;background:var(--surface-2);
+      border:1px solid var(--border-strong);color:var(--text-primary);font-size:14px;font-family:var(--sans);}
+    .suffix-wrap{position:relative;}
+    .suffix{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-muted);font-weight:600;}
+
+    .card-title{font-size:14px;font-weight:700;color:var(--text-primary);margin:0 0 14px;}
+    .ing-header{display:flex;gap:14px;padding:0 0 8px;font-size:11px;font-weight:700;color:var(--text-muted);
+      text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--border);}
+    .ing-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+    .ing-row:last-of-type{border-bottom:none;}
+    .ing-name-col{flex:1;}
+    .ing-name{font-size:14px;font-weight:700;color:var(--text-primary);}
+    .ing-source{font-size:11px;color:var(--text-muted);margin-top:2px;}
+    .ing-qty{width:56px;padding:7px 9px;border-radius:6px;background:var(--surface-2);
+      border:1px solid var(--border-strong);color:var(--text-primary);font-size:13px;font-family:var(--sans);
+      text-align:center;}
+    .ing-col{width:96px;text-align:right;font-size:13px;color:var(--text-secondary);font-variant-numeric:tabular-nums;}
+    .ing-col.strike{text-decoration:line-through;color:var(--text-muted);}
+    .ing-subtotal{width:96px;text-align:right;font-size:14px;font-weight:700;color:var(--text-primary);
+      font-variant-numeric:tabular-nums;}
+    .ing-gratis{width:112px;display:flex;align-items:center;justify-content:flex-end;gap:8px;}
+    .ing-gratis-label{font-size:12px;color:var(--text-secondary);font-weight:600;}
+    .toggle{width:34px;height:19px;border-radius:999px;background:var(--surface-2);
+      border:1px solid var(--border-strong);position:relative;flex-shrink:0;}
+    .toggle.on{background:var(--accent);border-color:var(--accent);}
+    .toggle-knob{width:13px;height:13px;border-radius:50%;background:#fff;position:absolute;top:2px;left:3px;}
+    .toggle.on .toggle-knob{left:18px;background:var(--accent-ink);}
+    .add-ing{margin-top:6px;width:100%;padding:12px;border-radius:8px;border:1px dashed var(--border-strong);
+      background:transparent;color:var(--text-secondary);font-size:13px;font-weight:700;font-family:var(--sans);}
+
+    .receipt{width:340px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);
+      border-radius:12px;padding:24px;height:fit-content;}
+    .receipt-title{font-size:14px;font-weight:700;color:var(--text-primary);margin:0 0 6px;}
+    .receipt-sub{font-size:12px;color:var(--text-muted);margin:0 0 16px;}
+    .receipt-row{display:flex;justify-content:space-between;padding:9px 0;font-size:13px;color:var(--text-secondary);}
+    .receipt-row .val{color:var(--text-primary);font-weight:600;font-variant-numeric:tabular-nums;}
+    .receipt-row.tax .val{color:var(--critical);}
+    .receipt-divider{border-top:1px dashed var(--border-strong);margin:6px 0;}
+    .receipt-row.total{padding-top:12px;}
+    .receipt-row.total .label{font-size:14px;font-weight:700;color:var(--text-primary);}
+    .receipt-row.total .val{font-size:18px;font-weight:800;color:var(--good);}
+    .roi-box{margin-top:18px;padding:18px;border-radius:10px;background:rgba(237,161,0,0.12);
+      border:1px solid rgba(237,161,0,0.35);text-align:center;}
+    .roi-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;}
+    .roi-value{font-size:30px;font-weight:800;color:var(--accent);margin-top:4px;font-variant-numeric:tabular-nums;}
+  </style>
+</helmet>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#eda100" stroke-width="1.6"/><path d="M11 8.4v7.2M8.5 14c0-1.4 1.3-2.2 3.2-2.2s3-.7 3-1.9-1.3-1.9-3-1.9c-1.5 0-2.7.6-3 1.7" stroke="#eda100" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span class="brand-name">Dofus Profit</span>
+    </div>
+    <nav>
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16M4 12h16M4 19h10"/></svg>
+        Recetas
+      </div>
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5Z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/></svg>
+        Items
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="server-chip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>
+        Servidor: Rosal
+      </div>
+      <div class="user-row">
+        <div class="avatar">CT</div>
+        <span class="user-name">Cristian</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 17l5-5-5-5M20 12H9M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <div class="breadcrumb">Recetas <b>/ Botas Invocadas</b></div>
+      <div class="topbar-actions">
+        <button class="btn-ghost">Cancelar</button>
+        <button class="btn-primary">Guardar receta</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="form-col">
+        <div class="card">
+          <div class="field-row">
+            <div class="field">
+              <label>Nombre de la receta</label>
+              <input class="input" value="Botas Invocadas" />
+            </div>
+            <div class="field" style="flex:0 0 160px;">
+              <label>Tiempo de crafteo</label>
+              <div class="suffix-wrap">
+                <input class="input" value="5" />
+                <span class="suffix">min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Ingredientes</h3>
+          <div class="ing-header">
+            <div style="flex:1;">Item</div>
+            <div style="width:56px;text-align:center;">Cant.</div>
+            <div style="width:96px;text-align:right;">Costo unit.</div>
+            <div style="width:96px;text-align:right;">Subtotal</div>
+            <div style="width:112px;text-align:right;">Gratis</div>
+          </div>
+
+          <div class="ing-row">
+            <div class="ing-name-col"><div class="ing-name">Felpa</div><div class="ing-source">Mercado &middot; Rosal</div></div>
+            <input class="ing-qty" value="5" />
+            <div class="ing-col">100k</div>
+            <div class="ing-subtotal">500k</div>
+            <div class="ing-gratis"><span class="ing-gratis-label">No</span><div class="toggle"><div class="toggle-knob"></div></div></div>
+          </div>
+
+          <div class="ing-row">
+            <div class="ing-name-col"><div class="ing-name">Hilo de Plata</div><div class="ing-source">Precio NPC (fijo)</div></div>
+            <input class="ing-qty" value="3" />
+            <div class="ing-col">50k</div>
+            <div class="ing-subtotal">150k</div>
+            <div class="ing-gratis"><span class="ing-gratis-label">No</span><div class="toggle"><div class="toggle-knob"></div></div></div>
+          </div>
+
+          <div class="ing-row">
+            <div class="ing-name-col"><div class="ing-name">Cristal de Fuego</div><div class="ing-source">Lo consigo yo (drop)</div></div>
+            <input class="ing-qty" value="1" />
+            <div class="ing-col strike">200k</div>
+            <div class="ing-subtotal">0k</div>
+            <div class="ing-gratis"><span class="ing-gratis-label">S&iacute;</span><div class="toggle on"><div class="toggle-knob"></div></div></div>
+          </div>
+
+          <button class="add-ing">+ Agregar ingrediente</button>
+        </div>
+
+        <div class="card">
+          <label>Precio de venta (mercado)</label>
+          <div class="suffix-wrap">
+            <input class="input" style="font-size:18px;font-weight:800;padding:13px 13px;" value="1,500" />
+            <span class="suffix">k kamas</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="receipt">
+        <h3 class="receipt-title">Resumen de rentabilidad</h3>
+        <p class="receipt-sub">C&aacute;lculo en vivo &middot; servidor Rosal</p>
+        <div class="receipt-row"><span>Costo total ingredientes</span><span class="val">650k</span></div>
+        <div class="receipt-row"><span>Precio de venta</span><span class="val">1,500k</span></div>
+        <div class="receipt-row"><span>Margen bruto</span><span class="val">850k</span></div>
+        <div class="receipt-row tax"><span>Impuesto (2%)</span><span class="val">-30k</span></div>
+        <div class="receipt-divider"></div>
+        <div class="receipt-row total"><span class="label">Margen neto</span><span class="val">820k</span></div>
+        <div class="receipt-row"><span>Tiempo de crafteo</span><span class="val">5 min</span></div>
+        <div class="roi-box">
+          <div class="roi-label">ROI por hora</div>
+          <div class="roi-value">9,840k</div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>

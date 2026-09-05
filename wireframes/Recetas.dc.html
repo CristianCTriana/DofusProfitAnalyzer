@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <style>
+    :root{
+      --bg:#0d0d0e; --surface:#1a1a1f; --surface-2:#202127;
+      --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
+      --text-primary:#f4f3f0; --text-secondary:#c3c2b7; --text-muted:#898781;
+      --accent:#eda100; --accent-solid:#c98500; --accent-ink:#16130a;
+      --good:#0ca30c; --critical:#d03b3b;
+      --sans:'Manrope', system-ui, -apple-system, sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:var(--sans);}
+    a{color:var(--accent);} a:hover{color:#ffb733;}
+    .app{width:1440px;height:1000px;background:var(--bg);display:flex;overflow:hidden;}
+
+    .sidebar{width:232px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;padding:24px 16px;}
+    .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 24px;}
+    .brand-name{font-size:14px;font-weight:800;color:var(--text-primary);}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+      color:var(--text-secondary);font-size:14px;font-weight:600;margin-bottom:4px;}
+    .nav-item.active{background:var(--surface-2);color:var(--text-primary);}
+    .nav-item.active svg{stroke:var(--accent);}
+    .sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--border);}
+    .server-chip{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--surface-2);
+      border-radius:8px;font-size:12px;color:var(--text-secondary);font-weight:600;}
+    .user-row{display:flex;align-items:center;gap:8px;padding:2px;}
+    .avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+    .user-name{font-size:13px;color:var(--text-primary);font-weight:600;flex:1;}
+
+    .content{flex:1;padding:32px 40px;display:flex;flex-direction:column;gap:20px;overflow:hidden;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;}
+    .page-title{display:flex;align-items:baseline;gap:10px;}
+    .page-title h2{font-size:20px;font-weight:800;color:var(--text-primary);margin:0;}
+    .page-count{font-size:13px;color:var(--text-muted);}
+    .topbar-actions{display:flex;gap:10px;align-items:center;}
+
+    .control{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;
+      background:var(--surface-2);border:1px solid var(--border-strong);color:var(--text-secondary);
+      font-size:13px;font-weight:600;}
+    .search{width:240px;color:var(--text-primary);}
+    .search input{background:none;border:none;outline:none;color:var(--text-primary);font-size:13px;
+      font-family:var(--sans);width:100%;}
+    .search input::placeholder{color:var(--text-muted);}
+    .btn-primary{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;border:none;
+      background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:700;font-family:var(--sans);}
+
+    .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+      overflow:hidden;flex:1;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    thead th{text-align:left;padding:12px 16px;font-size:11px;font-weight:700;color:var(--text-muted);
+      text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--border);
+      background:var(--surface-2);white-space:nowrap;}
+    th.num, td.num{text-align:right;}
+    td{padding:12px 16px;color:var(--text-primary);font-variant-numeric:tabular-nums;border-bottom:1px solid var(--border);}
+    tbody tr:last-child td{border-bottom:none;}
+    td.name{font-weight:700;font-variant-numeric:normal;}
+    th.sorted{color:var(--accent);}
+    .sort-icon{margin-left:3px;position:relative;top:1px;}
+    .positive{color:var(--good);font-weight:700;}
+    .negative{color:var(--critical);font-weight:700;}
+    .roi-cell{font-weight:800;}
+  </style>
+</helmet>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#eda100" stroke-width="1.6"/><path d="M11 8.4v7.2M8.5 14c0-1.4 1.3-2.2 3.2-2.2s3-.7 3-1.9-1.3-1.9-3-1.9c-1.5 0-2.7.6-3 1.7" stroke="#eda100" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span class="brand-name">Dofus Profit</span>
+    </div>
+    <nav>
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16M4 12h16M4 19h10"/></svg>
+        Recetas
+      </div>
+      <div class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5Z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/></svg>
+        Items
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="server-chip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>
+        Servidor: Rosal
+      </div>
+      <div class="user-row">
+        <div class="avatar">CT</div>
+        <span class="user-name">Cristian</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 17l5-5-5-5M20 12H9M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <div class="page-title">
+        <h2>Recetas</h2>
+        <span class="page-count">487 recetas</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="control search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input placeholder="Buscar receta..." />
+        </div>
+        <div class="control">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>
+          Servidor: Rosal
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <button class="btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+          Nueva receta
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th class="num">Costo</th>
+            <th class="num">Venta</th>
+            <th class="num">Impuesto</th>
+            <th class="num">Margen $</th>
+            <th class="num">Margen %</th>
+            <th class="num">Tiempo</th>
+            <th class="num sorted">ROI/h <span class="sort-icon">&#9660;</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="name">Botas Invocadas</td><td class="num">650k</td><td class="num">1,500k</td><td class="num">30k</td><td class="num positive">820k</td><td class="num positive">54.7%</td><td class="num">5 min</td><td class="num roi-cell positive">9,840k</td></tr>
+          <tr><td class="name">Amuleto del Cripta</td><td class="num">1,200k</td><td class="num">2,100k</td><td class="num">42k</td><td class="num positive">858k</td><td class="num positive">40.9%</td><td class="num">8 min</td><td class="num roi-cell positive">6,435k</td></tr>
+          <tr><td class="name">Cintur&oacute;n de Boohemia</td><td class="num">340k</td><td class="num">780k</td><td class="num">15.6k</td><td class="num positive">424.4k</td><td class="num positive">54.4%</td><td class="num">4 min</td><td class="num roi-cell positive">6,366k</td></tr>
+          <tr><td class="name">Anillo Gelano</td><td class="num">890k</td><td class="num">1,650k</td><td class="num">33k</td><td class="num positive">727k</td><td class="num positive">44.1%</td><td class="num">7 min</td><td class="num roi-cell positive">6,231k</td></tr>
+          <tr><td class="name">Capa de Kwoak</td><td class="num">210k</td><td class="num">520k</td><td class="num">10.4k</td><td class="num positive">299.6k</td><td class="num positive">57.6%</td><td class="num">3 min</td><td class="num roi-cell positive">5,992k</td></tr>
+          <tr><td class="name">Casco Bwork&eacute;fico</td><td class="num">1,450k</td><td class="num">2,300k</td><td class="num">46k</td><td class="num positive">804k</td><td class="num positive">35.0%</td><td class="num">9 min</td><td class="num roi-cell positive">5,360k</td></tr>
+          <tr><td class="name">Espada Corvaza</td><td class="num">560k</td><td class="num">980k</td><td class="num">19.6k</td><td class="num positive">400.4k</td><td class="num positive">40.9%</td><td class="num">5 min</td><td class="num roi-cell positive">4,805k</td></tr>
+          <tr><td class="name">Peto de Fungosa</td><td class="num">780k</td><td class="num">1,340k</td><td class="num">26.8k</td><td class="num positive">533.2k</td><td class="num positive">39.8%</td><td class="num">7 min</td><td class="num roi-cell positive">4,570k</td></tr>
+          <tr><td class="name">Guantes de Piwi</td><td class="num">150k</td><td class="num">380k</td><td class="num">7.6k</td><td class="num positive">222.4k</td><td class="num positive">58.5%</td><td class="num">3 min</td><td class="num roi-cell positive">4,448k</td></tr>
+          <tr><td class="name">Cinto de Craqueleur</td><td class="num">620k</td><td class="num">1,050k</td><td class="num">21k</td><td class="num positive">409k</td><td class="num positive">39.0%</td><td class="num">6 min</td><td class="num roi-cell positive">4,090k</td></tr>
+          <tr><td class="name">Bast&oacute;n de Fuego</td><td class="num">900k</td><td class="num">850k</td><td class="num">17k</td><td class="num negative">-67k</td><td class="num negative">-7.9%</td><td class="num">4 min</td><td class="num roi-cell negative">-1,005k</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>
