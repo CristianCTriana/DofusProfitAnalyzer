@@ -151,7 +151,7 @@ describe("costoUnitarioConCraft", () => {
     });
   });
 
-  it("un item marcado gratis cuesta 0 aunque el usuario haya marcado su sub-receta para craftear", () => {
+  it("un item marcado gratis cuesta 0 aunque el usuario haya marcado su sub-receta para craftear, pero conserva el desglose", () => {
     const sangreGratis: Item = { ...sangre, gratis: true };
     const resultado = costoUnitarioConCraft(
       "sangre",
@@ -162,7 +162,12 @@ describe("costoUnitarioConCraft", () => {
       new Set(),
       new Set(["sangre"]),
     );
-    expect(resultado).toEqual({ costoUnitario: 0, fuente: "gratis", viaCraft: false });
+    expect(resultado).toEqual({
+      costoUnitario: 0,
+      fuente: "gratis",
+      viaCraft: false,
+      detalle: [{ itemId: "cereza", cantidad: 1, costoUnitario: 1, fuente: "mercado", viaCraft: false }],
+    });
   });
 
   it("prefiere comprar cuando craftear con sus ingredientes sale más caro", () => {

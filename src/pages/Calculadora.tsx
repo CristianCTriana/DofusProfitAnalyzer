@@ -343,8 +343,8 @@ export function Calculadora() {
           compara si sale más barato craftearlo o comprarlo.
         </p>
       ) : (
-        <div className="flex flex-1 flex-col gap-6 overflow-hidden lg:flex-row">
-          <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto pr-1">
+        <div className="flex flex-1 flex-col gap-6 lg:flex-row lg:overflow-hidden">
+          <div className="flex flex-1 flex-col gap-3.5 lg:overflow-y-auto lg:pr-1">
             {entradas.map(({ entrada, receta: recetaEntrada, resultado }) => {
               const expandido = expandidosIds.has(entrada.id);
               return (
@@ -491,7 +491,7 @@ export function Calculadora() {
                                     Craftear esta sub-receta (sumar al cálculo)
                                   </label>
                                 )}
-                                {f.viaCraft && f.detalle && (
+                                {f.detalle && (
                                   <DetalleCraftLista
                                     detalle={f.detalle}
                                     multiplicador={f.necesario}
@@ -630,7 +630,7 @@ function DetalleCraftLista({
                 Craftear esta sub-receta (sumar al cálculo)
               </label>
             )}
-            {d.viaCraft && d.detalle && (
+            {d.detalle && (
               <DetalleCraftLista
                 detalle={d.detalle}
                 multiplicador={cantidadTotal}
