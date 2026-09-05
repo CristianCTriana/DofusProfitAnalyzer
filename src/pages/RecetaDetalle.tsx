@@ -10,7 +10,7 @@ import { esItemDeCatalogo } from "../services/catalogoDofusDb";
 import { calcularReceta, costoEfectivoItem } from "../services/calculo";
 import { agregarRecetaALista, guardarListaCalculadora, leerListaCalculadora } from "../services/calculadoraLista";
 import { getConfigGlobal } from "../services/config";
-import { actualizarPrecioMercado, updateItem } from "../services/items";
+import { actualizarPrecioMercado } from "../services/items";
 import { sincronizarPrecioComoItem, sincronizarPrecioComoReceta } from "../services/preciosVinculados";
 import { createReceta, deleteReceta, updateReceta } from "../services/recetas";
 import { getPerfilUsuario, setFavorito } from "../services/usuarios";
@@ -141,10 +141,6 @@ export function RecetaDetalle() {
 
   function quitarIngrediente(index: number) {
     setIngredientes((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  async function toggleGratis(item: Item) {
-    await updateItem(item.id, { gratis: !item.gratis });
   }
 
   function agregarACalculadora() {
@@ -354,7 +350,6 @@ export function RecetaDetalle() {
               <div className="w-14 shrink-0 text-center">Cant.</div>
               <div className="w-24 shrink-0 text-right">Costo unit.</div>
               <div className="w-24 shrink-0 text-right">Subtotal</div>
-              <div className="w-28 shrink-0 text-right">Drop/Recol.</div>
               {!esCatalogo && <div className="w-6 shrink-0" />}
             </div>
             {ingredientes.map((ing, index) => {
@@ -435,16 +430,6 @@ export function RecetaDetalle() {
                   </div>
                   <div className="w-24 shrink-0 text-right text-sm font-bold tabular-nums text-text-primary">
                     {formatExacto(costoUnitario * cantidad)}
-                  </div>
-                  <div className="flex w-28 shrink-0 items-center justify-end gap-2">
-                    <span className="text-xs font-semibold text-text-secondary">{item.gratis ? "Sí" : "No"}</span>
-                    <button
-                      onClick={() => toggleGratis(item)}
-                      className={`h-[18px] w-8 shrink-0 rounded-full border ${item.gratis ? "border-accent bg-accent" : "border-border-strong bg-surface-2"}`}
-                      aria-pressed={item.gratis}
-                    >
-                      <span className={`block h-3 w-3 rounded-full bg-white ${item.gratis ? "translate-x-4" : "translate-x-0.5"}`} />
-                    </button>
                   </div>
                   {!esCatalogo && (
                     <button onClick={() => quitarIngrediente(index)} className="w-6 shrink-0 text-text-muted hover:text-critical">

@@ -14,6 +14,7 @@ import {
 import { costoUnitarioConCraft } from "../services/calculo";
 import { getConfigGlobal } from "../services/config";
 import { getInventario } from "../services/inventario";
+import { updateItem } from "../services/items";
 import type { DetalleIngredienteCraft, FuenteCosto, Item, Receta, Servidor } from "../types";
 import { formatExacto } from "../utils/formato";
 
@@ -211,6 +212,10 @@ export function Calculadora() {
 
   function alternarCraftear(entradaId: string, itemId: string) {
     setLista((prev) => alternarCraftearIngrediente(prev, entradaId, itemId));
+  }
+
+  async function toggleGratis(item: Item) {
+    await updateItem(item.id, { gratis: !item.gratis });
   }
 
   const entradas = useMemo(
@@ -415,13 +420,14 @@ export function Calculadora() {
                   {expandido && resultado && (
                     <div className="mt-4 border-t border-border pt-4">
                       <div className="overflow-x-auto">
-                        <div className="min-w-[560px]">
+                        <div className="min-w-[680px]">
                           <div className="flex gap-3.5 border-b border-border pb-2 text-[11px] font-bold uppercase tracking-wide text-text-muted">
                             <div className="min-w-0 flex-1">Item</div>
                             <div className="w-20 shrink-0 text-right">Necesario</div>
                             <div className="w-20 shrink-0 text-right">Tienes</div>
                             <div className="w-20 shrink-0 text-right">Falta</div>
                             <div className="w-24 shrink-0 text-right">Costo a comprar</div>
+                            <div className="w-28 shrink-0 text-right">Drop/Recol.</div>
                           </div>
                           {resultado.filas.map((f) => {
                             const yaEsListaAparte = recetasIdsEnLista.has(f.item.id);
@@ -463,6 +469,17 @@ export function Calculadora() {
                                   <div className="w-24 shrink-0 text-right text-sm font-bold tabular-nums text-text-primary">
                                     {formatExacto(f.costoAComprar)}
                                   </div>
+                                  <div className="flex w-28 shrink-0 items-center justify-end gap-2">
+                                    <span className="text-xs font-semibold text-text-secondary">{f.item.gratis ? "Sí" : "No"}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleGratis(f.item)}
+                                      className={`h-[18px] w-8 shrink-0 rounded-full border ${f.item.gratis ? "border-accent bg-accent" : "border-border-strong bg-surface-2"}`}
+                                      aria-pressed={f.item.gratis}
+                                    >
+                                      <span className={`block h-3 w-3 rounded-full bg-white ${f.item.gratis ? "translate-x-4" : "translate-x-0.5"}`} />
+                                    </button>
+                                  </div>
                                 </div>
                                 {f.subReceta && !yaEsListaAparte && (
                                   <label className="mt-1.5 flex items-center gap-1.5 pl-9 text-[11px] font-semibold text-accent">
@@ -483,6 +500,7 @@ export function Calculadora() {
                                     recetasIdsEnLista={recetasIdsEnLista}
                                     craftearIds={entrada.craftearIds ?? []}
                                     onToggleCraftear={(itemId) => alternarCraftear(entrada.id, itemId)}
+                                    onToggleGratis={toggleGratis}
                                   />
                                 )}
                               </div>
@@ -560,6 +578,7 @@ function DetalleCraftLista({
   recetasIdsEnLista,
   craftearIds,
   onToggleCraftear,
+  onToggleGratis,
 }: {
   detalle: DetalleIngredienteCraft[];
   multiplicador: number;
@@ -568,6 +587,7 @@ function DetalleCraftLista({
   recetasIdsEnLista: Set<string>;
   craftearIds: string[];
   onToggleCraftear: (itemId: string) => void;
+  onToggleGratis: (item: Item) => void;
 }) {
   return (
     <div className="ml-9 mt-2 space-y-2 border-l-2 border-border pl-3.5">
@@ -594,6 +614,15 @@ function DetalleCraftLista({
               <span className="w-20 shrink-0 text-right text-xs font-bold tabular-nums text-text-primary">
                 {formatExacto(d.costoUnitario * cantidadTotal)}
               </span>
+              <button
+                type="button"
+                onClick={() => onToggleGratis(item)}
+                title="Drop/Recol. (lo consigo yo, sin costo)"
+                className={`h-[14px] w-6 shrink-0 rounded-full border ${item.gratis ? "border-accent bg-accent" : "border-border-strong bg-surface-2"}`}
+                aria-pressed={item.gratis}
+              >
+                <span className={`block h-2 w-2 rounded-full bg-white ${item.gratis ? "translate-x-3" : "translate-x-0.5"}`} />
+              </button>
             </div>
             {subReceta && !yaEsListaAparte && (
               <label className="mt-1 flex items-center gap-1.5 pl-7 text-[10px] font-semibold text-accent">
@@ -610,6 +639,7 @@ function DetalleCraftLista({
                 recetasIdsEnLista={recetasIdsEnLista}
                 craftearIds={craftearIds}
                 onToggleCraftear={onToggleCraftear}
+                onToggleGratis={onToggleGratis}
               />
             )}
           </div>
