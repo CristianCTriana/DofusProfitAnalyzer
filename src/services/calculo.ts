@@ -71,6 +71,13 @@ export function costoUnitarioConCraft(
   }
   const { costoUnitario: costoComprar, fuente } = costoEfectivoItem(item, servidorActivo);
 
+  // Un item marcado "gratis" (drop/recolectable) cuesta 0 sin importar que
+  // también tenga una sub-receta marcada para craftear: si lo consigues sin
+  // pagar, no tiene sentido pagar por craftearlo con sus propios ingredientes.
+  if (item.gratis) {
+    return { costoUnitario: costoComprar, fuente, viaCraft: false };
+  }
+
   const forzadoManual = craftearIds.has(itemId);
   const elegibleAutomatico = recetasIdsEnLista.has(itemId);
   const subReceta = forzadoManual || elegibleAutomatico ? recetasPorId.get(itemId) : undefined;

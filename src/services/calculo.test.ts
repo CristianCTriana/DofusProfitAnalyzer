@@ -151,6 +151,20 @@ describe("costoUnitarioConCraft", () => {
     });
   });
 
+  it("un item marcado gratis cuesta 0 aunque el usuario haya marcado su sub-receta para craftear", () => {
+    const sangreGratis: Item = { ...sangre, gratis: true };
+    const resultado = costoUnitarioConCraft(
+      "sangre",
+      { ...itemsPorIdCraft, sangre: sangreGratis },
+      SERVIDOR,
+      new Set(),
+      new Map([[recetaSangre.id, recetaSangre]]),
+      new Set(),
+      new Set(["sangre"]),
+    );
+    expect(resultado).toEqual({ costoUnitario: 0, fuente: "gratis", viaCraft: false });
+  });
+
   it("prefiere comprar cuando craftear con sus ingredientes sale más caro", () => {
     const resultado = costoUnitarioConCraft(
       "sangre-cara",
